@@ -1,0 +1,4 @@
+# frontend/.gitignore
+.env*
+node_modules/
+build/

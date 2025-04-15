@@ -1,50 +1,180 @@
-// src/frontend/src/App.js
+// frontend/src/App.js
 
 import React, { useState } from 'react';
 import axios from 'axios';
+import {
+  Container,
+  Paper,
+  TextField,
+  Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Checkbox,
+  FormGroup,
+  FormControlLabel,
+  Typography,
+  LinearProgress,
+} from '@material-ui/core';
 
 function App() {
-  const [source, setSource] = useState('clickhouse');
-  const [clickhouseConfig, setClickhouseConfig] = useState({
+  const [config, setConfig] = useState({
     host: '',
-    port: '',
+    port: 9000,
     database: '',
     user: '',
     jwt_token: ''
   });
+  const [sourceType, setSourceType] = useState('clickhouse');
+  const [tables, setTables] = useState([]);
+  const [selectedTable, setSelectedTable] = useState('');
+  const [columns, setColumns] = useState([]);
+  const [selectedColumns, setSelectedColumns] = useState([]);
+  const [file, setFile] = useState(null);
+  const [status, setStatus] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleConnect = async () => {
     try {
-      const response = await axios.post('http://localhost:8000/connect/clickhouse', clickhouseConfig);
-      // Handle response
+      setLoading(true);
+      await axios.post('http://localhost:8000/api/connect', config);
+      const response = await axios.post('http://localhost:8000/api/tables', config);
+      setTables(response.data.tables);
+      setStatus('Connected successfully');
     } catch (error) {
-      // Handle error
+      setStatus(`Error: ${error.response?.data?.detail || error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTransfer = async () => {
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await axios.post('http://localhost:8000/api/transfer', {
+        config,
+        source_type: sourceType,
+        table_name: selectedTable,
+        selected_columns: selectedColumns,
+        file_path: file ? file.name : null
+      });
+
+      setStatus(`Transfer completed: ${response.data.records_processed} records processed`);
+    } catch (error) {
+      setStatus(`Error: ${error.response?.data?.detail || error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="App">
-      <h1>Data Ingestion Tool</h1>
-      
-      <div className="source-selection">
-        <select value={source} onChange={(e) => setSource(e.target.value)}>
-          <option value="clickhouse">ClickHouse</option>
-          <option value="flatfile">Flat File</option>
-        </select>
-      </div>
+    <Container maxWidth="md">
+      <Paper style={{ padding: 20, marginTop: 20 }}>
+        <Typography variant="h5">ClickHouse Data Integrator</Typography>
 
-      {source === 'clickhouse' && (
-        <div className="clickhouse-config">
-          <input 
-            placeholder="Host"
-            value={clickhouseConfig.host}
-            onChange={(e) => setClickhouseConfig({...clickhouseConfig, host: e.target.value})}
+        {/* Connection Configuration */}
+        <FormControl fullWidth margin="normal">
+          <TextField
+            label="Host"
+            value={config.host}
+            onChange={(e) => setConfig({ ...config, host: e.target.value })}
           />
-          {/* Add other configuration inputs */}
-          <button onClick={handleConnect}>Connect</button>
-        </div>
-      )}
-    </div>
+          {/* Add other config fields */}
+        </FormControl>
+
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleConnect}
+          disabled={loading}
+        >
+          Connect
+        </Button>
+
+        {/* Source Type Selection */}
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Source Type</InputLabel>
+          <Select
+            value={sourceType}
+            onChange={(e) => setSourceType(e.target.value)}
+          >
+            <MenuItem value="clickhouse">ClickHouse</MenuItem>
+            <MenuItem value="file">File</MenuItem>
+          </Select>
+        </FormControl>
+
+        {/* Table Selection */}
+        {sourceType === 'clickhouse' && tables.length > 0 && (
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Select Table</InputLabel>
+            <Select
+              value={selectedTable}
+              onChange={(e) => setSelectedTable(e.target.value)}
+            >
+              {tables.map((table) => (
+                <MenuItem key={table.name} value={table.name}>
+                  {table.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+
+        {/* File Upload */}
+        {sourceType === 'file' && (
+          <input
+            type="file"
+            onChange={(e) => setFile(e.target.files[0])}
+            accept=".csv"
+          />
+        )}
+
+        {/* Column Selection */}
+        {columns.length > 0 && (
+          <FormGroup>
+            {columns.map((column) => (
+              <FormControlLabel
+                key={column}
+                control={
+                  <Checkbox
+                    checked={selectedColumns.includes(column)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedColumns([...selectedColumns, column]);
+                      } else {
+                        setSelectedColumns(selectedColumns.filter((c) => c !== column));
+                      }
+                    }}
+                  />
+                }
+                label={column}
+              />
+            ))}
+          </FormGroup>
+        )}
+
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleTransfer}
+          disabled={loading || !selectedColumns.length}
+        >
+          Transfer Data
+        </Button>
+
+        {loading && <LinearProgress />}
+        
+        {status && (
+          <Typography color="textSecondary" style={{ marginTop: 10 }}>
+            {status}
+          </Typography>
+        )}
+      </Paper>
+    </Container>
   );
 }
 
