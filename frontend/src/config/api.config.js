@@ -16,7 +16,7 @@ export const CLICKHOUSE_CONFIG = {
             port: 9000,
             database: "default",
             user: "default",
-            jwt_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"  // Replace with your actual token
+            password: ""  // Replace with your actual token
         }
     },
     production: {

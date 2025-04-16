@@ -16,7 +16,7 @@ class ClickHouseService:
             port=self.config.port,
             database=self.config.database,
             user=self.config.user,
-            password=self.config.jwt_token
+            password=self.config.password
         )
 
     def test_connection(self) -> bool:

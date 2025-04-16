@@ -18,13 +18,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# @app.post("/api/connect")
+# async def test_connection(config: ClickHouseConfig):
+#     try:
+#         service = ClickHouseService(config)
+#         service.test_connection()
+#         return {"status": "success", "message": "Connection successful"}
+#     except Exception as e:
+#         raise HTTPException(status_code=400, detail=str(e))
+
+# backend/app/main.py
 @app.post("/api/connect")
 async def test_connection(config: ClickHouseConfig):
+    print("Received config:", config.dict())  # Add this line for debugging
     try:
         service = ClickHouseService(config)
         service.test_connection()
         return {"status": "success", "message": "Connection successful"}
     except Exception as e:
+        print("Connection error:", str(e))  # Add this line for debugging
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/api/tables")
