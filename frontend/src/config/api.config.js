@@ -25,7 +25,7 @@ export const CLICKHOUSE_CONFIG = {
             port: 9440,  // or 8443 for HTTPS
             database: "your_database",
             user: "your_username",
-            jwt_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"  // Replace with your actual token
+            jwt_token: ""  // Replace with your actual token
         }
     }
 };
